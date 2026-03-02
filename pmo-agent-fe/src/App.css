@@ -1,0 +1,86 @@
+@font-face {
+  font-family: 'EYInterstate-Regular';
+  src: local("EYInterstate-Regular"),
+    url("./assets/fonts/EYInterstate-Regular.ttf") format("truetype");
+}
+
+body {
+  font-family: "EYInterstate-Regular", sans-serif;
+}
+
+.btn-primary{
+  background-color: #2e2e38 !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary.active {
+  background-color: black !important;
+}
+
+
+.card {
+  color: #faf9f6;
+}
+
+/* Target the specific scrollable container */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+/* The background of the scrollbar (track) */
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* The draggable part (thumb) */
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #fff;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #fff;
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #fff transparent;
+}
+
+.bg-body-tertiary {
+  background-color: #fff !important;
+  color: #faf9f6;
+}
+
+
+.responsive-height {
+    height: 45vh; /* Default height for smaller screens */
+}
+
+@media (min-width: 992px) { 
+    .responsive-height {
+        height: 65vh; /* Height for larger screens */
+    }
+}
+
+.banner {
+  height: 16em !important;
+  width: 100% !important;
+  border-radius: 12px;
+  overflow: hidden;
+  background-image: url("https://images.unsplash.com/photo-1671159593357-ee577a598f71?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+.banner_btn {
+  text-transform: none !important;
+  font-weight: 700 !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25) !important;
+}
+
