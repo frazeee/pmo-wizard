@@ -1,13 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
-// Prompt windows
-import ProjectRiskReport from "./projectRiskReport";
-import ValidationReport from "./validationReport";
-import ResourceRiskPrompt from "./resourceRisk";
-import MilestonePrompt from "./milestone";
-import TaskEvaluation from "./taskEvaluation";
-
 // UI
 import {
   Box,
@@ -17,15 +10,26 @@ import {
   Button,
   TextField,
   IconButton,
-  Tooltip
+  Tooltip,
+  Menu,
+  MenuItem,
+  Popover
 } from "@mui/material";
 import CreateIcon from "@mui/icons-material/Create";
 import { ThreeDots } from "react-loader-spinner";
+import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 
 //Markdown
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from "remark-breaks";
+
+// Prompt windows
+import ProjectRiskReport from "./projectRiskReport";
+import ResourceRiskPrompt from "./resourceRisk";
+import MilestonePrompt from "./milestone";
+import TaskEvaluation from "./taskEvaluation";
+
 
 export default function Chatbot() {
   const { projectId } = useParams();
@@ -38,6 +42,8 @@ export default function Chatbot() {
   const [promptKey, setPromptKey] = useState("");
   const messagesEndRef = useRef(null);
 
+  //For Prompt Button
+  const [anchorEl, setAnchorEl] = useState(null);
 
   const normalizeHistory = (history) => {
     if (!Array.isArray(history)) return [];
@@ -356,14 +362,58 @@ export default function Chatbot() {
         <div ref={messagesEndRef} />
       </Box>
 
+      {/* Grouped Prompt Button */}
       {/* Quick Actions */}
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1, mt: 1, flexWrap: 'wrap' }}>
-        <ProjectRiskReport onSubmit={handlePromptSubmit} />
-        <ValidationReport onSubmit={handlePromptSubmit} />
-        <TaskEvaluation onSubmit={handlePromptSubmit} />
-        <ResourceRiskPrompt onSubmit={handlePromptSubmit} />
-        <MilestonePrompt onSubmit={handlePromptSubmit} />
-      </Stack>
+      <Box sx={{ mb: 1, mt: 1, display: 'flex', justifyContent: 'flex-start' }}>
+
+        {/* BIG BUTTON ON LEFT */}
+        <Button
+          variant="contained"
+          sx={{
+            width: 160,        // make it big but not full-width
+            py: 2,
+            fontSize: ".8rem",
+            fontWeight: "bold",
+            backgroundColor: "#2e2e38"
+          }}
+          onClick={(e) => setAnchorEl(e.currentTarget)}
+        >
+          Quick Prompt
+          <ArrowDropUpIcon sx={{ ml: .5 }} />
+        </Button>
+        
+        {/* POPOVER ABOVE BUTTON */}
+        <Popover
+          open={Boolean(anchorEl)}
+          anchorEl={anchorEl}
+          onClose={() => setAnchorEl(null)}
+          anchorOrigin={{
+            vertical: "top",      // opens ABOVE
+            horizontal: "left",   // aligned to left side
+          }}
+          transformOrigin={{
+            vertical: "bottom",
+            horizontal: "left",
+          }}
+          PaperProps={{
+            sx: {
+              mt: -1,
+              borderRadius: 2,
+              p: 1.5,
+              width: 260,
+              backgroundColor: "#f5f5f5",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
+            }
+          }}
+        >
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+            <ProjectRiskReport onSubmit={handlePromptSubmit} />
+            <TaskEvaluation onSubmit={handlePromptSubmit} />
+            <ResourceRiskPrompt onSubmit={handlePromptSubmit} />
+            <MilestonePrompt onSubmit={handlePromptSubmit} />
+          </Box>
+        </Popover>
+      </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
         <TextField
@@ -397,5 +447,4 @@ export default function Chatbot() {
       </Box>
     </Box>
   );
-
 }

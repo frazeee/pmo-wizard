@@ -16,22 +16,25 @@ import {
   TextField,
   IconButton,
   CircularProgress,
-  Collapse,
   DialogContentText,
   Alert,
   AlertTitle,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
-
+import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 // PAGES
 import Chatbot from "../chatbot";
 
 // Components
 import AdditionalDocuments from "../additionalDocuments/AdditionalDocuments"
 import { saveIssuesAsTxt } from "../payloadIssue/PayloadIssue";
+
+
+// prettify keys like "project_plan" → "Project Plan"
+const prettifyFileLabel = (key = "Unknown File") =>
+  key
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (m) => m.toUpperCase());
 
 const ProjectAssistDashboard = () => {
   const { projectId } = useParams();
@@ -52,9 +55,21 @@ const ProjectAssistDashboard = () => {
     raid_log: null,
     // additional_documents will be managed by the component as an array
   });
+  
+  //For reset of file inputs
+  const inputRefs = useState({})[0];
+  const clearSingleFile = (fieldName) => {
+    setFiles((prev) => ({
+      ...prev,
+      [fieldName]: null,
+    }));
 
-  // show/hide optional inputs (hidden by default)
-  const [showOptional, setShowOptional] = useState(false);
+    // clear actual file input UI
+    if (inputRefs[fieldName]) {
+      inputRefs[fieldName].value = "";
+    }
+  };
+
 
   //ErrorLog
   const [hasErrorLog, setHasErrorLog] = useState(false);
@@ -136,7 +151,7 @@ const ProjectAssistDashboard = () => {
         icon: "warning",
         confirmButtonText: "Okay",
         customClass: {
-          confirmButton: "btn-primary",
+          confirmButton: "custom-confirm",
         },
       });
       return;
@@ -220,7 +235,7 @@ const ProjectAssistDashboard = () => {
               text: "Files uploaded successfully!",
               icon: "success",
               confirmButtonText: "Confirm",
-              customClass: { confirmButton: "btn-primary" },
+              customClass: { confirmButton: "custom-confirm" },
             });
 
 
@@ -284,7 +299,7 @@ const ProjectAssistDashboard = () => {
         text: backendMsg,
         icon: "error",
         confirmButtonText: "Okay",
-        customClass: { confirmButton: "btn-primary" },
+        customClass: { confirmButton: "custom-confirm" },
       });
 
     } finally {
@@ -311,6 +326,7 @@ const ProjectAssistDashboard = () => {
           text: "Files uploaded successfully!",
           icon: "success",
           confirmButtonText: "Confirm",
+          customClass: { confirmButton: "custom-confirm" }
         });
       } else {
         setHasErrorLog(true);
@@ -368,16 +384,15 @@ const ProjectAssistDashboard = () => {
                 {hasErrorLog && (
                   <Button
                     variant="contained"
-                    color="error"
                     onClick={handleDownloadLastErrorLog}
-                    size="small"
                     sx={{
-                      backgroundColor: "#d32f2f",
-                      "&:hover": { backgroundColor: "#b71c1c" },
+                      backgroundColor: "#ffe600",
+                      "&:hover": { backgroundColor: "#ffe600" },
+                      color: '#2e2e38'
                     }}
                   >
-                    <CloudDownloadIcon sx={{ mr: 1 }} />
-                    Error Log
+                    <FileDownloadOutlinedIcon sx={{ mr: 1, color: '#2e2e38'}} />
+                    Error Report
                   </Button>
                 )}
 
@@ -431,67 +446,95 @@ const ProjectAssistDashboard = () => {
               name="project_plan"
               onChange={handleFileChange}
               InputLabelProps={{ shrink: true }}
+              inputRef={(el) => (inputRefs.project_plan = el)}
+              InputProps={{
+                endAdornment:
+                  files.project_plan && (
+                    <IconButton
+                      onClick={() => clearSingleFile("project_plan")}
+                      size="small"
+                      sx={{ mr: 1 }}
+                    >
+                      <CloseIcon sx={{ color: "#2e2e38" }} />
+                    </IconButton>
+                  ),
+              }}
               sx={{
                 "& .MuiFormLabel-asterisk": {
-                  color: "red",
+                  color: "#2e2e38",
                 },
               }}
             />
 
-            {/* --- Toggle to reveal optional fields --- */}
-            <Box sx={{ mt: 1, mb: 1 }}>
-              <Button
-                type="button"
-                variant="text"
-                onClick={() => setShowOptional((s) => !s)}
-                disabled={uploading}
-                sx={{ textTransform: "none", px: 0, gap: 1, display: "inline-flex", alignItems: "center" }}
-              >
-                {showOptional ? (
-                  <>
-                    <VisibilityOffIcon fontSize="small" />
-                    Hide Optional Files
-                  </>
-                ) : (
-                  <>
-                    <VisibilityIcon fontSize="small" />
-                    Show Optional Files (PTO Calendar, Resource Allocation, RAID Log)
-                  </>
-                )}
-              </Button>
-            </Box>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="PTO Calendar"
+              type="file"
+              name="pto_calendar"
+              onChange={handleFileChange}
+              InputLabelProps={{ shrink: true }}
+              inputRef={(el) => (inputRefs.pto_calendar = el)}
+              InputProps={{
+                endAdornment:
+                  files.pto_calendar && (
+                    <IconButton
+                      onClick={() => clearSingleFile("pto_calendar")}
+                      size="small"
+                      sx={{ mr: 1 }}
+                    >
+                      <CloseIcon sx={{ color: "#2e2e38" }} />
+                    </IconButton>
+                  ),
+              }}
+            />
 
-            {/* --- Optional fields are hidden by default --- */}
-            <Collapse in={showOptional} timeout="auto" unmountOnExit>
-              <TextField
-                fullWidth
-                margin="normal"
-                label="PTO Calendar"
-                type="file"
-                name="pto_calendar"
-                onChange={handleFileChange}
-                InputLabelProps={{ shrink: true }}
-              />
-              <TextField
-                fullWidth
-                margin="normal"
-                label="Resource Allocation"
-                type="file"
-                name="resource_allocation"
-                onChange={handleFileChange}
-                InputLabelProps={{ shrink: true }}
-              />
-              <TextField
-                fullWidth
-                margin="normal"
-                label="RAID Log"
-                type="file"
-                name="raid_log"
-                onChange={handleFileChange}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Collapse>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Resource Allocation"
+              type="file"
+              name="resource_allocation"
+              onChange={handleFileChange}
+              InputLabelProps={{ shrink: true }}
+              inputRef={(el) => (inputRefs.resource_allocation = el)}
+              InputProps={{
+                endAdornment:
+                  files.resource_allocation && (
+                    <IconButton
+                      onClick={() => clearSingleFile("resource_allocation")}
+                      size="small"
+                      sx={{ mr: 1 }}
+                    >
+                      <CloseIcon sx={{ color: "#2e2e38" }} />
+                    </IconButton>
+                  ),
+              }}
+            />
 
+            <TextField
+              fullWidth
+              margin="normal"
+              label="RAID Log"
+              type="file"
+              name="raid_log"
+              onChange={handleFileChange}
+              InputLabelProps={{ shrink: true }}
+              inputRef={(el) => (inputRefs.raid_log = el)}
+              InputProps={{
+                endAdornment:
+                  files.raid_log && (
+                    <IconButton
+                      onClick={() => clearSingleFile("raid_log")}
+                      size="small"
+                      sx={{ mr: 1 }}
+                    >
+                      <CloseIcon sx={{ color: "#2e2e38" }} />
+                    </IconButton>
+                  ),
+              }}
+            />
+         
             {/* --- NEW: Additional Documents Component with row add/remove --- */}
             <AdditionalDocuments
               files={files}
@@ -540,26 +583,63 @@ const ProjectAssistDashboard = () => {
           Validation Issues Found
         </DialogTitle>
 
+        
         <DialogContent dividers>
           <DialogContentText mb={2}>
             The following files have missing cells or data issues:
           </DialogContentText>
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {allIssues.map((issue, index) => (
-              <Alert severity="warning" key={index}>
-                <AlertTitle sx={{ textTransform: "capitalize" }}>
-                  {issue.originFile.replace(/_/g, " ")} — <strong>{issue.field}</strong>
-                </AlertTitle>
-                {issue.message}
-              </Alert>
-            ))}
-          </Box>
-          
-          <Typography variant="body2" sx={{ mt: 3, fontWeight: "medium" }}>
-            Do you want to continue with the upload despite these issues?
-          </Typography>
+          {/* Group issues by originFile */}
+          {(() => {
+            const byFile = {};
+            (allIssues || []).forEach((i) => {
+              const key = i.originFile || "unknown_file";
+              if (!byFile[key]) byFile[key] = [];
+              byFile[key].push(i);
+            });
+
+            const entries = Object.entries(byFile);
+
+            if (entries.length === 0) {
+              return (
+                <Alert severity="success">
+                  <AlertTitle>No validation issues</AlertTitle>
+                  Everything looks good!
+                </Alert>
+              );
+            }
+
+            return (
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {entries.map(([fileKey, issues]) => (
+                  <Alert
+                    key={fileKey}
+                    severity="warning"
+                    variant="outlined"
+                    sx={{ bgcolor: "warning.50" }}
+                  >
+                    <AlertTitle sx={{ fontWeight: 700, color: "warning.dark" }}>
+                      {prettifyFileLabel(fileKey)}
+                    </AlertTitle>
+
+                    {/* Numbered list: 1., 2., 3. */}
+                    <Box component="ol" sx={{ pl: 3, m: 0 }}>
+                      {issues.map((issue, idx) => (
+                        <li key={idx}>
+                          <Typography component="span" sx={{ fontWeight: 700 }}>
+                            {issue.field}
+                          </Typography>
+                          <Typography component="span"> — {issue.message}</Typography>
+                        </li>
+                      ))}
+                    </Box>
+                  </Alert>
+                ))}
+              </Box>
+            );
+          })()}
         </DialogContent>
+
       
         <DialogActions sx={{ p: 2, display: "flex", justifyContent: "space-between" }}>
 
@@ -567,16 +647,15 @@ const ProjectAssistDashboard = () => {
           <Box>
             <Button
               variant="contained"
-              color="error"
               onClick={handleDownloadLastErrorLog}
-              size="small"
               sx={{
-                backgroundColor: "#d32f2f",
-                "&:hover": { backgroundColor: "#b71c1c" },
+                backgroundColor: "#ffe600",
+                "&:hover": { backgroundColor: "#ffe600" },
+                color: '#2e2e38'
               }}
             >
-              <CloudDownloadIcon sx={{ mr: 1 }} />
-              Error Log
+              <FileDownloadOutlinedIcon sx={{ mr: 1, color: '#2e2e38' }} />
+              Error Report
             </Button>
           </Box>
             
@@ -586,14 +665,21 @@ const ProjectAssistDashboard = () => {
               Cancel
             </Button>
             
+            
             <Button
               onClick={() => handleProceed(false)}
               variant="contained"
-              color="primary"
-              autoFocus
+              sx={{
+                backgroundColor: '#2e2e38',
+                color: '#fff',
+                '&:hover': {
+                  backgroundColor: '#1f1f25'
+                }
+              }}
             >
-              Continue & Proceed
+              Skip & Continue
             </Button>
+
           </Box>
         </DialogActions>
 

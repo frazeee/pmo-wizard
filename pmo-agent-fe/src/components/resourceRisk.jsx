@@ -100,6 +100,7 @@ const ResourceRiskPrompt = ({ onSubmit }) => {
               borderRadius: 2,
               textTransform: "none",
               backgroundColor: "#2e2e38",
+              color: "#fff", 
           }}
           >
           {loading ? "Loading…" : "Resource Risk"}

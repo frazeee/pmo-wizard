@@ -8,6 +8,22 @@ body {
   font-family: "EYInterstate-Regular", sans-serif;
 }
 
+
+
+/* Black confirm button */
+.swal2-confirm.custom-confirm {
+  background-color: #2e2e38 !important;
+  color: #ffffff !important;
+  border-radius: 6px !important;
+  padding: 8px 20px !important;
+}
+
+.swal2-confirm.custom-confirm:hover {
+  background-color: #1f1f25 !important;
+}
+
+
+
 .btn-primary{
   background-color: #2e2e38 !important;
 }

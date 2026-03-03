@@ -159,7 +159,7 @@ const Projects = () => {
               <Grid container  xs={12} sm={6} md={3} lg={3} rowSpacing={2}>
                 {projects.map((project) => (
                   <Grid item size={4} key={project.project_id}>
-                    <Tooltip disableFocusListener title={project.project_name} placement="right">
+                    <Tooltip disableFocusListener title={project.project_name + ": " + project.description} placement="right">
                       <CardNewsComponent
                         URL="https://images.unsplash.com/photo-1606836576983-8b458e75221d?q=80&w=1470&auto=format&fit=crop"
                         CardName={project.project_name}
