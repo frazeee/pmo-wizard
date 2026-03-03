@@ -5,6 +5,8 @@ import { useParams } from "react-router-dom";
 import ProjectRiskReport from "./projectRiskReport";
 import ValidationReport from "./validationReport";
 import ResourceRiskPrompt from "./resourceRisk";
+import MilestonePrompt from "./milestone";
+import TaskEvaluation from "./taskEvaluation";
 
 // UI
 import {
@@ -15,7 +17,7 @@ import {
   Button,
   TextField,
   IconButton,
-  Tooltip 
+  Tooltip
 } from "@mui/material";
 import CreateIcon from "@mui/icons-material/Create";
 import { ThreeDots } from "react-loader-spinner";
@@ -33,15 +35,10 @@ export default function Chatbot() {
   const [inputValue, setInputValue] = useState("");
   const [loadingResponse, setLoadingResponse] = useState(false);
   const [historyLoaded, setHistoryLoaded] = useState(false);
-   const [promptKey, setPromptKey] = useState("");
+  const [promptKey, setPromptKey] = useState("");
   const messagesEndRef = useRef(null);
 
-  // --- Helpers ---
 
-  // Normalize history from server:
-  // Accepts either:
-  //   - [{ role: 'user'|'assistant', content: string }, ...]
-  //   - [{ question: string, answer: string }, ...]
   const normalizeHistory = (history) => {
     if (!Array.isArray(history)) return [];
 
@@ -189,7 +186,7 @@ export default function Chatbot() {
 
   const handleSendMessage = () => {
     if (inputValue.trim() === "") return;
-  
+
     const message = { question: inputValue };
     safeSend(message);
     setMessages((prev) => [...prev, { from: "user", text: inputValue }]);
@@ -197,10 +194,10 @@ export default function Chatbot() {
     setLoadingResponse(true);
   };
 
-  const handlePromptKeyChange = (promptKey) =>{
+  const handlePromptKeyChange = (promptKey) => {
     setPromptKey(promptKey);
   }
-  
+
 
   const handlePromptSubmit = async (text, prompt_key) => {
     if (!text || text.trim() === "") return;
@@ -212,290 +209,193 @@ export default function Chatbot() {
     setPromptKey("")
   };
 
-  const formatText = (text) => {
-    // Step 1: Format headings with period
-    text = text.replace(
-      /###\s*(.+?)(?=\n|$)/g,
-      (match, h3Text) => `<h5 style="margin: 30px 0;"><strong>${h3Text.trim()}</strong></h5>`
-    );
-
-    // Step 2: Format bold text
-    text = text.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, (match, strongContent) => {
-      return `<strong>${strongContent}</strong>`;
-    });
-
-    // Step 3: Clean up any remaining stray asterisks
-    text = text.replace(/(?<!<strong>)\*+(?!<\/strong>)/g, '');
-
-    // Step 4: Convert numbered lists to proper HTML
-    text = text.replace(/^(\d+)\.\s+(.+)$/gm, '<li class="ml-4">$2</li>');
-    text = text.replace(/(<li[^>]*>.*?<\/li>\s*)+/gs, (match) => {
-      return `<ol class="list-decimal ml-4 my-2">${match}</ol>`;
-    });
-
-    // Step 5: Convert bullets to proper HTML
-    text = text.replace(/^[•\-]\s+(.+)$/gm, '<li class="ml-4">$1</li>');
-    text = text.replace(/(<li class="ml-4"[^>]*>(?:(?!<ol>).)*?<\/li>\s*)+/gs, (match) => {
-      if (!match.includes('<ol>')) {
-        return `<ul class="list-disc ml-4 my-2">${match}</ul>`;
-      }
-      return match;
-    });
-
-    // Step 6: Recommended Fix
-    text = text.replace(/- (Recommended Fix:)/g, (match, fixText) => {
-      return `<br /><strong>${fixText}</strong>`;
-    });
-
-    return text;
-  };
-console.log(messages);
-return (
-  <Box
-    component="section"
-    sx={{
-      backgroundColor: 'white',
-      height: 'calc(100dvh - 179px)',
-      maxWidth: 'none',
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column',
-      minWidth: 0,
-      mt: 1
-    }}
-  >
-
+  return (
     <Box
+      component="section"
       sx={{
-        position: 'relative',
-        overflowY: 'auto',
-        flex: 1,
-        minHeight: 0,
+        backgroundColor: 'white',
+        height: 'calc(100dvh - 179px)',
+        maxWidth: 'none',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        minWidth: 0,
+        mt: 1
       }}
     >
-      {messages.map((message, index) => {
-        const isUser = message.from === "user";
-        return (
-          <Box
-            key={message.id ?? index}
-            sx={{
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: isUser ? 'flex-end' : 'flex-start',
-            }}
-          >
+
+      <Box
+        sx={{
+          position: 'relative',
+          overflowY: 'auto',
+          flex: 1,
+          minHeight: 0,
+        }}
+      >
+        {messages.map((message, index) => {
+          const isUser = message.from === "user";
+          // Convert literal "\n" into real newlines
+          const textWithNewlines = (message.text ?? "").replace(/\\n/g, "\n");
+
+          return (
             <Box
+              key={message.id ?? index}
               sx={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: isUser ? "flex-end" : "flex-start",
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: isUser ? 'flex-end' : 'flex-start',
               }}
             >
-              {isUser ? (
-                <Typography
-                  component="div"
-                  sx={{
-                    p: 2,
-                    mr: isUser ? 2 : 0,
-                    ml: isUser ? 0 : 2,
-                    mb: isUser ? 2 : 4,
-                    borderRadius: 3,
-                    bgcolor: isUser ? "primary.main" : "grey.100",
-                    color: isUser ? "primary.contrastText" : "text.primary",
-                    maxWidth: 600,
-                    wordBreak: "break-word",
-                    whiteSpace: "pre-wrap",
-                  }}
-                  variant="body2"
-                >
-                  {message.text}
-                </Typography>
-              ) : (
-                <Box
-                  sx={{
-                    p: 2,
-                    mr: isUser ? 2 : 0,
-                    ml: isUser ? 0 : 2,
-                    mb: isUser ? 2 : 4,
-                    borderRadius: 3,
-                    bgcolor: isUser ? "primary.main" : "grey.100",
-                    color: isUser ? "primary.contrastText" : "text.primary",
-                    maxWidth: 600,
-                    wordBreak: "break-word",
-                    whiteSpace: "pre-wrap",
-                  }}
-                >
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm, remarkBreaks]}
-                    components={{
-                      p: ({ node, ...props }) => (
-                        <Typography variant="body2" component="p" {...props} />
-                      ),
-                      code: ({ inline, children, ...props }) => (
-                        <code
-                          style={{
-                            background: inline ? "rgba(0,0,0,0.06)" : "transparent",
-                            padding: inline ? "0.2em 0.4em" : 0,
-                            borderRadius: 4,
-                            fontFamily: "monospace",
-                          }}
-                          {...props}
-                        >
-                          {children}
-                        </code>
-                      ),
-                      pre: ({ node, ...props }) => (
-                        <Box
-                          component="pre"
-                          sx={{
-                            overflowX: "auto",
-                            p: 1.5,
-                            bgcolor: "grey.200",
-                            borderRadius: 2,
-                          }}
-                          {...props}
-                        />
-                      ),
-                      a: ({ node, ...props }) => (
-                        <a {...props} target="_blank" rel="noopener noreferrer" />
-                      ),
-                      li: ({ node, ...props }) => (
-                        <li style={{ marginLeft: 16 }} {...props} />
-                      ),
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: isUser ? "flex-end" : "flex-start",
+                }}
+              >
+                {isUser ? (
+                  <Typography
+                    component="div"
+                    sx={{
+                      p: 2,
+                      mr: isUser ? 2 : 0,
+                      ml: isUser ? 0 : 2,
+                      mb: isUser ? 2 : 4,
+                      borderRadius: 3,
+                      bgcolor: isUser ? "primary.main" : "grey.100",
+                      color: isUser ? "primary.contrastText" : "text.primary",
+                      maxWidth: 600,
+                      wordBreak: "break-word",
+                      whiteSpace: "pre-wrap", // preserves real newlines
+                    }}
+                    variant="body2"
+                  >
+                    {textWithNewlines}
+                  </Typography>
+                ) : (
+                  <Box
+                    sx={{
+                      p: 2,
+                      mr: isUser ? 2 : 0,
+                      ml: isUser ? 0 : 2,
+                      mb: isUser ? 2 : 4,
+                      borderRadius: 3,
+                      bgcolor: isUser ? "primary.main" : "grey.100",
+                      color: isUser ? "primary.contrastText" : "text.primary",
+                      maxWidth: 600,
+                      wordBreak: "break-word",
+                      whiteSpace: "pre-wrap",
                     }}
                   >
-                    {message.text ?? ""}
-                  </ReactMarkdown>
-                </Box>
-              )}
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm, remarkBreaks]}
+                      components={{
+                        p: ({ node, ...props }) => (
+                          <Typography variant="body2" component="p" {...props} />
+                        ),
+                        code: ({ inline, children, ...props }) => (
+                          <code
+                            style={{
+                              background: inline ? "rgba(0,0,0,0.06)" : "transparent",
+                              padding: inline ? "0.2em 0.4em" : 0,
+                              borderRadius: 4,
+                            }}
+                            {...props}
+                          >
+                            {children}
+                          </code>
+                        ),
+                        pre: ({ node, ...props }) => (
+                          <Box
+                            component="pre"
+                            sx={{
+                              overflowX: "auto",
+                              p: 1.5,
+                              bgcolor: "grey.200",
+                              borderRadius: 2,
+                            }}
+                            {...props}
+                          />
+                        ),
+                        a: ({ node, ...props }) => (
+                          <a {...props} target="_blank" rel="noopener noreferrer" />
+                        ),
+                        li: ({ node, ...props }) => (
+                          <li style={{ marginLeft: 16 }} {...props} />
+                        ),
+                      }}
+                    >
+                      {textWithNewlines}
+                    </ReactMarkdown>
+                  </Box>
+                )}
+              </Box>
+            </Box>
+          );
+        })}
+
+        {loadingResponse && (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+            <Box
+              sx={{
+                p: 3,
+                ml: 3,
+                mb: 4,
+                borderRadius: 3,
+                bgcolor: 'grey.100',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <ThreeDots color="#2e2e38" height={48} width={48} />
             </Box>
           </Box>
-        );
-      })}
+        )}
 
-      {loadingResponse && (
-        <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-          <Box
-            sx={{
-              p: 3,
-              ml: 3,
-              mb: 4,
-              borderRadius: 3,
-              bgcolor: 'grey.100',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <ThreeDots
-              color="#2e2e38"
-              height={48}
-              width={48}
-            />
-          </Box>
-        </Box>
-      )}
+        <div ref={messagesEndRef} />
+      </Box>
 
-      <div ref={messagesEndRef} />
-    </Box>
+      {/* Quick Actions */}
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1, mt: 1, flexWrap: 'wrap' }}>
+        <ProjectRiskReport onSubmit={handlePromptSubmit} />
+        <ValidationReport onSubmit={handlePromptSubmit} />
+        <TaskEvaluation onSubmit={handlePromptSubmit} />
+        <ResourceRiskPrompt onSubmit={handlePromptSubmit} />
+        <MilestonePrompt onSubmit={handlePromptSubmit} />
+      </Stack>
 
-    {/* Quick Actions */}
-    <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1, mt: 1, flexWrap: 'wrap' }}>
-      <ProjectRiskReport onSubmit={handlePromptSubmit}/>
-      <ValidationReport onSubmit={handlePromptSubmit}/>
-      
-      <Tooltip title="Reviews task progress and quality.">
-        <Button
-          type="button"
-          variant="small"
-          sx={{
-            fontWeight: 600,
-            flex: 1,
-            justifyContent: "space-between",
-            borderRadius: 2,
-            textTransform: "none",
-            backgroundColor: "#2e2e38",
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <TextField
+          fullWidth
+          multiline
+          size="small"
+          placeholder="Type here..."
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleSendMessage();
+            }
           }}
-        >
-          Task Evaluation
-          <IconButton
-            component="span"
-            size="small"
-            color="inherit"
-            sx={{
-              ml: 1,
-              bgcolor: "rgba(255,255,255,0.15)",
-              "&:hover": { bgcolor: "rgba(255,255,255,0.25)" },
-            }}
-          >
-            <CreateIcon fontSize="small" />
-          </IconButton>
-        </Button>
-      </Tooltip>
-
-      <ResourceRiskPrompt onSubmit={handlePromptSubmit}/>
-
-      <Tooltip title="Marks key project achievements or checkpoints.">
-        <Button
-          type="button"
-          variant="small"
           sx={{
-            fontWeight: 600,
-            flex: 1,
-            justifyContent: "space-between",
-            borderRadius: 2,
-            textTransform: "none",
-            backgroundColor: "#2e2e38",
+            maxHeight: 100,
+            overflowY: 'auto',
+            bgcolor: 'background.paper',
+            '& .MuiInputBase-root': { alignItems: 'flex-start' },
           }}
+        />
+        <Button
+          variant="contained"
+          size="small"
+          sx={{ ml: 1, py: 1, backgroundColor: "#2e2e38", fontWeight: 'bold' }}
+          onClick={handleSendMessage}
         >
-          Milestone
-          <IconButton
-            component="span"
-            size="small"
-            color="inherit"
-            sx={{
-              ml: 1,
-              bgcolor: "rgba(255,255,255,0.15)",
-              "&:hover": { bgcolor: "rgba(255,255,255,0.25)" },
-            }}
-          >
-            <CreateIcon fontSize="small" />
-          </IconButton>
+          Send
         </Button>
-      </Tooltip>
-    </Stack>
-
-    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-      <TextField
-        fullWidth
-        multiline
-        size="small"
-        placeholder="Type here..."
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            handleSendMessage();
-          }
-        }}
-        sx={{
-          maxHeight: 100,
-          overflowY: 'auto',
-          bgcolor: 'background.paper',
-          '& .MuiInputBase-root': { alignItems: 'flex-start' },
-        }}
-      />
-      <Button
-        variant="contained"
-        size="small"
-        sx={{ ml: 1, py: 1, backgroundColor: "#2e2e38", fontWeight: 'bold' }}
-        onClick={handleSendMessage}
-      >
-        Send
-      </Button>
+      </Box>
     </Box>
-  </Box>
-);
+  );
 
 }

@@ -16,7 +16,7 @@ import CreateIcon from "@mui/icons-material/Create";
 // config 
 import { ENV } from "../configure/env";
 
-const ResourceRiskPrompt = ({ onSubmit }) => {
+const TaskEvaluation = ({ onSubmit }) => {
   const { projectId } = useParams();
 
   const [showModal, setShowModal] = useState(false);
@@ -24,8 +24,8 @@ const ResourceRiskPrompt = ({ onSubmit }) => {
   const [error, setError] = useState(null);
 
   // Keep the API default (baseline) and the current textarea value separate
-  const [baseResourcePrompt, setBaseResourcePrompt] = useState("");
-  const [currentResourcePrompt, setCurrentResourcePrompt] = useState("");
+  const [baseTaskEvaluationPrompt, setBaseTaskEvaluationPrompt] = useState("");
+  const [currentTaskEvaluationPrompt, setCurrentTaskEvaluationPrompt] = useState("");
 
   useEffect(() => {
     const getPrompts = async () => {
@@ -35,10 +35,10 @@ const ResourceRiskPrompt = ({ onSubmit }) => {
         const { data } = await axios.get(
           `${ENV.API_URL}/${projectId}/prompts`
         );
-        const apiPrompt = data?.default_prompts?.resource_risk ?? "";
+        const apiPrompt = data?.default_prompts?.task_evaluation ?? "";
         // Set both the baseline and the current editor value
-        setBaseResourcePrompt(apiPrompt);
-        setCurrentResourcePrompt(apiPrompt);
+        setBaseTaskEvaluationPrompt(apiPrompt);
+        setCurrentTaskEvaluationPrompt(apiPrompt);
       } catch (err) {
         console.error("Error fetching prompts:", err);
         setError("Failed to load prompts. Please try again.");
@@ -52,23 +52,23 @@ const ResourceRiskPrompt = ({ onSubmit }) => {
 
   const openModal = () => {
     // Optional: ensure each time the modal opens, it starts from the default
-    setCurrentResourcePrompt(baseResourcePrompt);
+    setCurrentTaskEvaluationPrompt(baseTaskEvaluationPrompt);
     setShowModal(true);
   };
 
   const handleTextareaChange = (e) => {
     const newValue = e.target.value;
     // Your custom logic can go here if needed
-    setCurrentResourcePrompt(newValue);
+    setCurrentTaskEvaluationPrompt(newValue);
   };
 
   const handleSubmit = () => {
     // Send whatever the user currently typed
     
-    onSubmit?.(currentResourcePrompt, 'resource_risk');
+    onSubmit?.(currentTaskEvaluationPrompt, 'task_evaluation');
 
     // Reset back to the original default from the API
-    setCurrentResourcePrompt(baseResourcePrompt);
+    setCurrentTaskEvaluationPrompt(baseTaskEvaluationPrompt);
 
     // Optionally close the modal
     setShowModal(false);
@@ -76,7 +76,7 @@ const ResourceRiskPrompt = ({ onSubmit }) => {
 
   const handleCancel = () => {
     // Revert any edits in this session
-    setCurrentResourcePrompt(baseResourcePrompt);
+    setCurrentTaskEvaluationPrompt(baseTaskEvaluationPrompt);
     setShowModal(false);
   };
 
@@ -88,7 +88,7 @@ const ResourceRiskPrompt = ({ onSubmit }) => {
 
   return (
     <>
-      <Tooltip title="Checks availability and sufficiency of needed resources." placement="top">
+      <Tooltip title="Reviews task progress and quality." placement="top">
         <Button
           type="button"                 // avoid implicit submit in forms
           variant="small"
@@ -102,7 +102,7 @@ const ResourceRiskPrompt = ({ onSubmit }) => {
               backgroundColor: "#2e2e38",
           }}
           >
-          {loading ? "Loading…" : "Resource Risk"}
+          {loading ? "Loading…" : "Task Evaluation"}
 
           {/* Make it a span to avoid nested <button> */}
           <IconButton
@@ -132,10 +132,10 @@ const ResourceRiskPrompt = ({ onSubmit }) => {
         fullWidth
         maxWidth="md"              // similar to modal-lg
         disableEscapeKeyDown       // block Escape key close
-        aria-labelledby="resourceReportModalLabel"
+        aria-labelledby="taskEvaluationReportModalLabel"
         >
-        <DialogTitle id="resourceReportModalLabel" sx={{ backgroundColor: "#2e2e38", fontWeight: 600, color: '#fff', fontFamily: "EYInterstate-Regular, sans-serif"}}>
-            Resource Risk
+        <DialogTitle id="taskEvaluationReportModalLabel" sx={{ backgroundColor: "#2e2e38", fontWeight: 600, color: '#fff', fontFamily: "EYInterstate-Regular, sans-serif"}}>
+            Task Evaluation
         </DialogTitle>
 
         <DialogContent dividers>
@@ -144,7 +144,7 @@ const ResourceRiskPrompt = ({ onSubmit }) => {
         id="resource-textarea"
         label="Prompt"
         placeholder="Leave a comment here"
-        value={currentResourcePrompt}
+        value={currentTaskEvaluationPrompt}
         onChange={handleTextareaChange}
         variant="outlined"
         multiline
@@ -194,4 +194,4 @@ const ResourceRiskPrompt = ({ onSubmit }) => {
   );
 };
 
-export default ResourceRiskPrompt;
+export default TaskEvaluation;

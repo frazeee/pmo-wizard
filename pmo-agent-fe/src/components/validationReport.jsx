@@ -82,7 +82,7 @@ const ValidationReport = ({ onSubmit }) => {
 
     return (
         <>
-            <Tooltip title="Confirms that the output meets user or client requirements.">
+            <Tooltip title="Confirms that the output meets user or client requirements." placement="top">
                 <Button
                     type="button"                 // avoid implicit submit in forms
                     variant="small"
