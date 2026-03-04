@@ -21,13 +21,12 @@ import {
   AlertTitle,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 // PAGES
 import Chatbot from "../chatbot";
 
 // Components
 import AdditionalDocuments from "../additionalDocuments/AdditionalDocuments"
-import { saveIssuesAsTxt } from "../payloadIssue/PayloadIssue";
+import PayloadIssue from "../payloadIssue/PayloadIssue";
 
 
 // prettify keys like "project_plan" → "Project Plan"
@@ -53,10 +52,9 @@ const ProjectAssistDashboard = () => {
     pto_calendar: null,
     resource_allocation: null,
     raid_log: null,
-    // additional_documents will be managed by the component as an array
   });
-  
-  //For reset of file inputs
+
+
   const inputRefs = useState({})[0];
   const clearSingleFile = (fieldName) => {
     setFiles((prev) => ({
@@ -77,14 +75,6 @@ const ProjectAssistDashboard = () => {
   //Validation Modal
   const [showModal, setShowModal] = useState(false);
   const [allIssues, setAllIssues] = useState([]);
-
-
-  //Handler for DownloadErrorLog
-  const handleDownloadLastErrorLog = () => {
-    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const filename = `${projectId || "project"}_last_error_log_${stamp}.txt`;
-    saveIssuesAsTxt(backendIssuesPayload, { filename });
-  };
 
 
   useEffect(() => {
@@ -170,7 +160,7 @@ const ProjectAssistDashboard = () => {
         setBackendIssuesPayload(data);
         setHasErrorLog(true);
         setUploadOpen(false);
-        
+
         //Validation Modal
         // Support all backend structures
         const issuesData = data?.issues || data?.files || data?.data?.files || {};
@@ -178,7 +168,7 @@ const ProjectAssistDashboard = () => {
         // Flatten ANY nested issue structure
         const flatIssues = Object.keys(issuesData).flatMap((fileKey) => {
           const block = issuesData[fileKey];
-        
+
           // CASE 1: backend returns { file: { issues: [] } }
           if (Array.isArray(block?.issues)) {
             return block.issues.map((issue) => ({
@@ -187,7 +177,7 @@ const ProjectAssistDashboard = () => {
               message: issue.message ?? issue.detail ?? "No description provided."
             }));
           }
-        
+
           // CASE 2: backend returns { file: [ ...issues ] }
           if (Array.isArray(block)) {
             return block.map((issue) => ({
@@ -196,12 +186,12 @@ const ProjectAssistDashboard = () => {
               message: issue.message ?? issue.detail ?? "No description provided."
             }));
           }
-        
+
           // CASE 3: backend returns nested categories like:
           // { file: { missing: [], errors: [] } }
           if (typeof block === "object" && block !== null) {
             const nestedArrays = Object.values(block).filter(Array.isArray);
-          
+
             return nestedArrays.flatMap((arr) =>
               arr.map((issue) => ({
                 originFile: fileKey,
@@ -210,7 +200,7 @@ const ProjectAssistDashboard = () => {
               }))
             );
           }
-        
+
           return [];
         });
 
@@ -382,18 +372,22 @@ const ProjectAssistDashboard = () => {
               <Stack direction="row" spacing={1}>
                 {/*Log Button: */}
                 {hasErrorLog && (
-                  <Button
-                    variant="contained"
-                    onClick={handleDownloadLastErrorLog}
-                    sx={{
-                      backgroundColor: "#ffe600",
-                      "&:hover": { backgroundColor: "#ffe600" },
-                      color: '#2e2e38'
-                    }}
-                  >
-                    <FileDownloadOutlinedIcon sx={{ mr: 1, color: '#2e2e38'}} />
-                    Error Report
-                  </Button>
+                  // <Button
+                  //   variant="contained"
+                  //   onClick={handleDownloadLastErrorLog}
+                  //   sx={{
+                  //     backgroundColor: "#ffe600",
+                  //     "&:hover": { backgroundColor: "#ffe600" },
+                  //     color: '#2e2e38'
+                  //   }}
+                  // >
+                  //   <FileDownloadOutlinedIcon sx={{ mr: 1, color: '#2e2e38'}} />
+                  //   Error Report
+                  // </Button>
+                  <PayloadIssue
+                    report={backendIssuesPayload}
+                    filename={`${projectId || "project"}_upload_issues.xlsx`}
+                  />
                 )}
 
                 {/*Upload Button: This button opens the MUI upload dialog */}
@@ -534,7 +528,7 @@ const ProjectAssistDashboard = () => {
                   ),
               }}
             />
-         
+
             {/* --- NEW: Additional Documents Component with row add/remove --- */}
             <AdditionalDocuments
               files={files}
@@ -583,7 +577,7 @@ const ProjectAssistDashboard = () => {
           Validation Issues Found
         </DialogTitle>
 
-        
+
         <DialogContent dividers>
           <DialogContentText mb={2}>
             The following files have missing cells or data issues:
@@ -640,12 +634,12 @@ const ProjectAssistDashboard = () => {
           })()}
         </DialogContent>
 
-      
+
         <DialogActions sx={{ p: 2, display: "flex", justifyContent: "space-between" }}>
 
           {/* LEFT SIDE */}
           <Box>
-            <Button
+            {/* <Button
               variant="contained"
               onClick={handleDownloadLastErrorLog}
               sx={{
@@ -656,16 +650,20 @@ const ProjectAssistDashboard = () => {
             >
               <FileDownloadOutlinedIcon sx={{ mr: 1, color: '#2e2e38' }} />
               Error Report
-            </Button>
+            </Button> */}
+            <PayloadIssue
+              report={backendIssuesPayload}
+              filename={`${projectId || "project"}_upload_issues.xlsx`}
+            />
           </Box>
-            
+
           {/* RIGHT SIDE */}
           <Box sx={{ display: "flex", gap: 1 }}>
             <Button onClick={handleCancelIssues} color="inherit">
               Cancel
             </Button>
-            
-            
+
+
             <Button
               onClick={() => handleProceed(false)}
               variant="contained"
