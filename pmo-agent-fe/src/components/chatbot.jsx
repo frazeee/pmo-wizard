@@ -387,7 +387,7 @@ export default function Chatbot() {
           }}
           onClick={(e) => setAnchorEl(e.currentTarget)}
         >
-          Project Risk
+          Quick Prompt
           <ArrowDropUpIcon sx={{ ml: .5 }} />
         </Button>
         
